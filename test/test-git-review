@@ -31,7 +31,7 @@ git commit \
     -m "More important work" \
     -m "Review-Options: --order=*.h,*important.txt -M"
 
-# Compare git-review and git-log
+# Compare git-review and git-show
 args="--oneline --stat initial.."
 
 echo
@@ -42,6 +42,6 @@ git review $args
 
 echo
 echo "----------"
-echo "'git log $args' output:"
+echo "'git show $args' output:"
 echo "----------"
-git log $args
+git show $args

@@ -10,7 +10,7 @@ if [ "$1" == "--help" ]; then
 fi
 
 revs=$(git rev-parse --no-flags --default HEAD "$@")
-reviewoptions=$(git log --no-patch --format=%B $revs \
+reviewoptions=$(git show --no-patch --format=%B $revs \
     | grep '^Review-Options:' \
     | sed 's/[^:]*://')
 
@@ -33,4 +33,4 @@ function parse_options() {
 
 parse_options $reviewoptions
 
-exec git log $diff_options -O <(echo "$order") "$@"
+exec git show $diff_options -O <(echo "$order") "$@"
