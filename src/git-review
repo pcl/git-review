@@ -34,8 +34,8 @@ args=
 
 function parse_options() {
     while [ $# -ne 0 ]; do
-        if [[ "$1" == --order-files=* ]]; then 
-            order="$order$(echo "$1" | sed 's/--order-files=//' | tr ',' '\n')
+        if [[ "$1" == --order=* ]]; then
+            order="$order$(echo "$1" | sed 's/--order=//' | tr ',' '\n')
 "
         elif [[ "$1" == "-M" || "$1" == "-w" ]]; then
             args="$args $1"
