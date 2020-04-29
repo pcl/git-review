@@ -8,6 +8,14 @@ trap "rm -rf $dir" EXIT
 cd $dir
 
 git init
+
+# Initial commit
+echo "Initial junk" > aaa-junk.txt
+git add aaa-junk.txt
+git commit -m "Initial"
+git tag initial
+
+# Second commit, with Review-Options
 echo "Important stuff" > zzz-important.txt
 echo "Support junk for the important stuff" > aaa-junk.txt
 git add *.txt
@@ -15,13 +23,21 @@ git commit \
     -m "Important work" \
     -m "Review-Options: --order=*.h,*important.txt -M"
 
+# Third commit, with Review-Options
+echo "More important stuff" > zzz-important.txt
+echo "Support junk for more important stuff" > aaa-junk.txt
+git add *.txt
+git commit \
+    -m "More important work" \
+    -m "Review-Options: --order=*.h,*important.txt -M"
 
-args="--oneline --stat"
+# Compare git-review and git-log
+args="--oneline --stat initial.."
 
+echo
 echo "----------"
 echo "'git review $args' output:"
 echo "----------"
-
 git review $args
 
 echo
