@@ -1,0 +1,51 @@
+#!/bin/bash
+
+
+function usage() {
+    echo "Usage: $0 [ <options> ] [ <refspec> ]"
+}
+
+if [ "$1" == "help" ]; then
+    usage
+    exit
+fi
+
+logopts=
+while [[ $# -gt 0 && "$1" == -* ]]; do
+    logopts="$logopts $1"
+    shift
+done
+
+if [ $# -gt 1 ]; then
+    usage
+    exit -1
+fi
+
+# the last argument, if present, is the refspec
+commit=${1:-}
+
+reviewoptions="$(git log --grep='^\W*Review-Options:' $commit \
+    | grep '^\W*Review-Options:' \
+    | sed 's/[^:]*://')"
+
+
+order=
+args=
+
+function parse_options() {
+    while [ $# -ne 0 ]; do
+        if [[ "$1" == --order-files=* ]]; then 
+            order="$order$(echo "$1" | sed 's/--order-files=//' | tr ',' '\n')
+"
+        elif [[ "$1" == "-M" || "$1" == "-w" ]]; then
+            args="$args $1"
+        else
+            echo "Ignoring unknown Review-Options flag: $1" >&2
+        fi
+        shift
+    done
+}
+
+parse_options $reviewoptions
+
+git log $logopts $args -O <(echo "$order")

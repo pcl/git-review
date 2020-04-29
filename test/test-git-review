@@ -1,0 +1,31 @@
+#!/bin/bash
+
+cd $(dirname $0)/../src
+PATH=$(pwd):$PATH
+
+dir=$(mktemp -d)
+trap "rm -rf $dir" EXIT
+cd $dir
+
+git init
+echo "Important stuff" > zzz-important.txt
+echo "Support junk for the important stuff" > aaa-junk.txt
+git add *.txt
+git commit -m "Important work
+
+Review-Options: --order-files=*important.txt -M"
+
+
+args="--oneline --stat"
+
+echo "----------"
+echo "'git review $args' output:"
+echo "----------"
+
+git review $args
+
+echo
+echo "----------"
+echo "'git log $args' output:"
+echo "----------"
+git log $args
