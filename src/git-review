@@ -1,44 +1,29 @@
 #!/bin/bash
 
-
 function usage() {
-    echo "Usage: $0 [ <options> ] [ <refspec> ]"
+    echo "Usage: $0 [<options>] [<object>...]"
 }
 
-if [ "$1" == "help" ]; then
+if [ "$1" == "--help" ]; then
     usage
-    exit
+    exit 0
 fi
 
-logopts=
-while [[ $# -gt 0 && "$1" == -* ]]; do
-    logopts="$logopts $1"
-    shift
-done
-
-if [ $# -gt 1 ]; then
-    usage
-    exit -1
-fi
-
-# the last argument, if present, is the refspec
-commit=${1:-}
-
-reviewoptions="$(git log --grep='^\W*Review-Options:' $commit \
-    | grep '^\W*Review-Options:' \
-    | sed 's/[^:]*://')"
-
+revs=$(git rev-parse --no-flags --default HEAD "$@")
+reviewoptions=$(git show --no-patch --format=%B $revs \
+    | grep '^Review-Options:' \
+    | sed 's/[^:]*://')
 
 order=
-args=
+diff_options=
 
 function parse_options() {
     while [ $# -ne 0 ]; do
-        if [[ "$1" == --order-files=* ]]; then 
-            order="$order$(echo "$1" | sed 's/--order-files=//' | tr ',' '\n')
+        if [[ "$1" == --order=* ]]; then
+            order="$order$(echo "$1" | sed 's/--order=//' | tr ',' '\n')
 "
         elif [[ "$1" == "-M" || "$1" == "-w" ]]; then
-            args="$args $1"
+            diff_options="$diff_options $1"
         else
             echo "Ignoring unknown Review-Options flag: $1" >&2
         fi
@@ -48,4 +33,4 @@ function parse_options() {
 
 parse_options $reviewoptions
 
-git log $logopts $args -O <(echo "$order")
+exec git show $diff_options -O <(echo "$order") "$@"
