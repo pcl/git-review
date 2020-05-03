@@ -31,6 +31,14 @@ git commit \
     -m "More important work" \
     -m "Review-Options: --order=*.h,*important.txt -M"
 
+# This time with Review-Section
+echo "More important stuff" > zzz-important.txt
+echo "Support junk for more important stuff" > aaa-junk.txt
+git add *.txt
+git commit \
+    -m "More important work" \
+    -m "Review-Section: *.h,*important.txt"
+
 # Compare git-review and git-show
 args="--oneline --stat initial.."
 

@@ -9,10 +9,6 @@ if [ "$1" == "--help" ]; then
     exit 0
 fi
 
-revs=$(git rev-parse --no-flags --default HEAD "$@")
-reviewoptions=$(git show --no-patch --format=%B $revs \
-    | grep '^Review-Options:' \
-    | sed 's/[^:]*://')
 
 order=
 diff_options=
@@ -31,6 +27,25 @@ function parse_options() {
     done
 }
 
-parse_options $reviewoptions
+function parse_sections() {
+    # Treat each as an additional glob pattern; add them to 'order'
+    while [ $# -ne 0 ]; do
+        order="$order$(echo "$1" | tr ',' '\n')
+"
+        shift
+    done
+}
+
+revs=$(git rev-parse --no-flags --default HEAD "$@")
+review_options=$(git show --no-patch --format=%B $revs \
+    | egrep '^Review-Options:' \
+    | sed 's/[^:]*://')
+parse_options $review_options
+
+review_sections=$(git show --no-patch --format=%B $revs \
+    | egrep '^Review-Section:' \
+    | sed 's/[^:]*://')
+parse_sections $review_sections
+
 
 exec git show $diff_options -O <(echo "$order") "$@"
