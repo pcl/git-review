@@ -1,17 +1,16 @@
 #!/bin/bash
 
+set -eou pipefail
+
 function usage() {
     echo "Usage: $0 [<options>] [<object>...]"
 }
 
-if [ "$1" == "--help" ]; then
+if [ "$#" -gt 0 ] && [ "$1" == "--help" ]; then
     usage
     exit 0
 fi
 
-
-order=
-diff_options=
 
 function parse_options() {
     while [ $# -ne 0 ]; do
@@ -36,16 +35,26 @@ function parse_sections() {
     done
 }
 
+
+pager="$(git config core.pager || true)"
+pager="${pager:-less -RFX}"
+
+# TODO parse out '--stat' etc. so we can pass that along to the git command
+
 revs=$(git rev-parse --no-flags --default HEAD "$@")
-review_options=$(git show --no-patch --format=%B $revs \
-    | egrep '^Review-Options:' \
-    | sed 's/[^:]*://')
-parse_options $review_options
+for rev in $(git log --format='%H' $revs); do
+    order=
+    diff_options=
+    
+    review_options=$(git show --no-patch --format=%B $rev \
+                         | egrep '^Review-Options:' \
+                         | sed 's/[^:]*://' || true)
+    parse_options $review_options
 
-review_sections=$(git show --no-patch --format=%B $revs \
-    | egrep '^Review-Section:' \
-    | sed 's/[^:]*://')
-parse_sections $review_sections
+    review_sections=$(git show --no-patch --format=%B $rev \
+                          | egrep '^Review-Section:' \
+                          | sed 's/[^:]*://'|| true)
+    parse_sections $review_sections
 
-
-exec git show $diff_options -O <(echo "$order") "$@"
+    git -P -c color.ui=always show $diff_options -O <(echo "$order") $rev
+done | $pager | less -RFX # When using a pipelined core.pager, we somehow need an extra 'less' to page
