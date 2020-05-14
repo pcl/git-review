@@ -39,9 +39,8 @@ function parse_sections() {
 pager="$(git config core.pager || true)"
 pager="${pager:-less -RFX}"
 
-# TODO parse out '--stat' etc. so we can pass that along to the git command
-
-revs=$(git rev-parse --no-flags --default HEAD "$@")
+revs=$(git rev-parse --revs-only --default HEAD "$@")
+opts=$(git rev-parse --no-revs "$@")
 for rev in $(git log --format='%H' $revs); do
     order=
     diff_options=
@@ -56,5 +55,5 @@ for rev in $(git log --format='%H' $revs); do
                           | sed 's/[^:]*://'|| true)
     parse_sections $review_sections
 
-    git -P -c color.ui=always show $diff_options -O <(echo "$order") $rev
+    git -P -c color.ui=always show $opts $diff_options -O <(echo "$order") $rev
 done | $pager | less -RFX # When using a pipelined core.pager, we somehow need an extra 'less' to page
